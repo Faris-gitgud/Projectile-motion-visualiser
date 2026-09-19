@@ -2,12 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-os.makedirs("figures", exist_ok=True)
-os.makedirs("results", exist_ok=True)
+# Use the folder containing this Python file as the project directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# =========================================================
+FIGURES_DIR = os.path.join(BASE_DIR, "figures")
+RESULTS_DIR = os.path.join(BASE_DIR, "results")
+
+os.makedirs(FIGURES_DIR, exist_ok=True)
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
+'''
 # Projectile Simulation
-# =========================================================
+'''
 
 def simulate_projectile(v0, angle, g, dt):
     """
@@ -57,9 +63,9 @@ def simulate_projectile(v0, angle, g, dt):
             return landing_x, points
 
 
-# =========================================================
+'''
 # Analytical Solution
-# =========================================================
+'''
 
 def analytical_range(v0, angle, g):
     """
@@ -152,7 +158,7 @@ for dt, landing, error, points in zip(
 import csv
 
 with open(
-    "results/results.csv",
+    os.path.join(RESULTS_DIR, "results.csv"),
     "w",
     newline=""
 ) as file:
@@ -235,7 +241,10 @@ plt.grid(
 plt.legend()
 
 plt.tight_layout()
-plt.savefig( "figures/convergence.png",dpi=300)
+plt.savefig(
+    os.path.join(FIGURES_DIR, "convergence.png"),
+    dpi=300
+)
 plt.show()
 
 
@@ -291,7 +300,10 @@ plt.grid(
 plt.legend()
 
 plt.tight_layout()
-plt.savefig("figures/computational_cost.png", dpi=300)
+plt.savefig(
+    os.path.join(FIGURES_DIR, "computational_cost.png"),
+    dpi=300
+)
 plt.show()
 
 
@@ -424,5 +436,8 @@ plt.grid(True)
 plt.legend()
 
 plt.tight_layout()
-plt.savefig("figures/validation.png", dpi=300)
+plt.savefig(
+    os.path.join(FIGURES_DIR, "validation.png"),
+    dpi=300
+)
 plt.show()
