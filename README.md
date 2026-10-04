@@ -1,17 +1,16 @@
-# Projectile-motion-visualiser
 # Projectile Motion: Numerical Simulation and Analysis
 
 A Python-based computational investigation of projectile motion, combining an interactive visualiser with numerical analysis of timestep accuracy, convergence, computational cost, and model validation.
 
 ## Overview
 
-This project began as an interactive 2D projectile-motion visualiser and was extended into a numerical investigation of how a simple time-stepping simulation behaves as the timestep is changed.
+This project started as an interactive 2D projectile-motion visualiser and developed into a computational investigation of numerical accuracy and efficiency.
 
 The main question investigated was:
 
 > **How does timestep size affect the accuracy and computational cost of a numerical projectile-motion simulation?**
 
-The numerical results are compared against the analytical solution for ideal projectile motion. The project also tests the numerical method across multiple launch angles.
+The numerical results are compared against the analytical solution for ideal projectile motion. The simulation is also tested across multiple launch angles to check whether it reproduces the expected behaviour of the physical model.
 
 ## Features
 
@@ -62,34 +61,18 @@ The interpolation step reduces the error caused by stopping only after the proje
 
 ### 1. Convergence Analysis
 
-The simulation was run using timestep sizes ranging from:
+The simulation was tested using timestep sizes ranging from `0.1` to `0.0001` seconds.
 
+The main experiment used:
 
-0.1
-0.05
-0.02
-0.01
-0.005
-0.001
-0.0005
-0.0001
+| Parameter                  |           Value |
+| -------------------------- | --------------: |
+| Initial velocity           |          20 m/s |
+| Launch angle               |             45° |
+| Gravitational acceleration |       9.81 m/s² |
+| Analytical range           | 40.7747196738 m |
 
-
-For the main experiment:
-
-
-Initial velocity = 20 m/s
-Launch angle     = 45°
-Gravity          = 9.81 m/s²
-
-
-The analytical range is:
-
-
-40.7747196738 m
-
-
-The numerical results showed that reducing the timestep progressively reduced the error.
+The numerical results were:
 
 | Timestep | Numerical Range (m) | Absolute Error (m) |
 | -------: | ------------------: | -----------------: |
@@ -104,21 +87,39 @@ The numerical results showed that reducing the timestep progressively reduced th
 
 ![Convergence plot](convergence.png)
 
-The log-log relationship between timestep and error provides an estimate of the numerical convergence rate.
+The relationship between timestep and error was examined using a log-log fit.
 
-The important observation is that **smaller timesteps improve accuracy, but they also require more integration steps**.
+The fitted convergence slope was approximately **1.001**, indicating that the numerical error decreases approximately linearly with timestep size.
+
+In other words:
+
+$$
+\text{Error} \propto \Delta t^{1.001}
+$$
+
+This shows quantitatively how refining the timestep improves the accuracy of the simulation.
 
 ### 2. Computational Cost
 
 The number of integration points was recorded for every timestep.
 
-As the timestep becomes smaller, the simulation requires substantially more points to represent the same physical trajectory.
+As the timestep becomes smaller, the simulation requires more points to represent the same physical trajectory.
 
 ![Computational cost plot](computational_cost.png)
 
+A log-log fit of timestep against the number of integration points produced a slope of approximately **−0.999**.
+
+This is consistent with the expected inverse relationship:
+
+$$
+N \propto \frac{1}{\Delta t}
+$$
+
+where \(N\) is the number of integration points.
+
 This illustrates an important numerical-computing trade-off:
 
-> **Higher numerical accuracy comes at the cost of increased computation.**
+> **Higher numerical accuracy comes at the cost of increased computational work.**
 
 A timestep that is unnecessarily small can provide very little additional accuracy relative to the computational work required.
 
@@ -126,25 +127,33 @@ A timestep that is unnecessarily small can provide very little additional accura
 
 The numerical method was also tested at several launch angles:
 
-
-15°
-30°
-45°
-60°
-75°
-
+**15°, 30°, 45°, 60°, and 75°**
 
 The numerical ranges were compared with the analytical solution for each angle.
 
 ![Validation plot](validation.png)
 
-The results reproduce the expected symmetry of ideal projectile motion:
+The results reproduce the expected behaviour of ideal projectile motion:
 
 * 15° and 75° produce approximately equal ranges.
 * 30° and 60° produce approximately equal ranges.
-* The maximum theoretical range occurs at 45°.
+* The maximum range occurs at 45°.
+* The numerical and analytical ranges closely overlap across the tested angles.
 
 This provides an additional check that the numerical implementation behaves consistently beyond a single test case.
+
+## Results at a Glance
+
+| Result                           |         Value |
+| -------------------------------- | ------------: |
+| Analytical range at 45°          | **40.7747 m** |
+| Numerical range at `dt = 0.0001` | **40.7733 m** |
+| Absolute error at `dt = 0.0001`  | **0.00141 m** |
+| Convergence slope                |   **≈ 1.001** |
+| Computational-cost slope         |  **≈ −0.999** |
+| Maximum theoretical range        |       **45°** |
+
+These results show that reducing the timestep improves accuracy in a predictable way, while also increasing the computational work required.
 
 ## Key Findings
 
@@ -158,7 +167,7 @@ The project therefore demonstrates a basic but important idea in computational s
 
 ## Project Structure
 
-
+```text
 Projectile-motion-visualiser/
 │
 ├── projectile.py
@@ -168,97 +177,5 @@ Projectile-motion-visualiser/
 │   └── Numerical experiments and analysis
 │
 ├── convergence.png
-│   └── Timestep convergence plot
 │
-├── computational_cost.png
-│   └── Computational-cost analysis
-│
-├── validation.png
-│   └── Analytical vs numerical validation
-│
-├── results.csv
-│   └── Numerical experiment results
-│
-├── .gitignore
-└── README.md
-
-
-## Requirements
-
-* Python 3
-* NumPy
-* Matplotlib
-
-Install the dependencies with:
-
-
-pip install numpy matplotlib
-
-
-## Running the Interactive Visualiser
-
-Run:
-
-
-python projectile.py
-
-
-The visualiser allows the initial velocity and launch angle to be changed interactively.
-
-## Running the Numerical Analysis
-
-Run:
-
-
-python projectile_analysis.py
-
-
-The analysis script:
-
-* runs the simulation for multiple timestep sizes,
-* calculates the error relative to the analytical solution,
-* estimates convergence behaviour,
-* measures computational cost,
-* validates the method across launch angles,
-* saves the generated figures,
-* and writes the numerical results to CSV.
-
-## Limitations
-
-This project uses an idealised projectile-motion model.
-
-It does not currently account for:
-
-* Air resistance
-* Wind
-* Variable gravitational acceleration
-* Three-dimensional motion
-* Non-flat terrain
-* Rotational effects
-
-These assumptions make the system simple enough to analyse while providing a useful setting for studying numerical methods.
-
-## What I Learned
-
-This project helped me explore the difference between obtaining a numerical result and understanding how reliable that result is.
-
-The most interesting part of the investigation was the relationship between timestep size, accuracy, and computational cost. Changing a numerical parameter can improve the result, but it can also substantially increase the amount of computation required.
-
-This introduced me to a broader idea in computational problem solving: **a good numerical method is not only about getting an accurate answer, but also about understanding the cost of obtaining it.**
-
-## Future Extensions
-
-Possible extensions include:
-
-* Adding air resistance
-* Comparing different numerical integration methods
-* Investigating adaptive timestep selection
-* Measuring runtime in addition to integration-point count
-* Extending the model to two- or three-dimensional motion
-
-## Author
-
-**Faris Zahidi**
-
-Independent computational project exploring numerical simulation, physics, and programming.
-
+```
