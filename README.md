@@ -1,181 +1,146 @@
 # Projectile Motion: Numerical Simulation and Analysis
 
-A Python-based computational investigation of projectile motion, combining an interactive visualiser with numerical analysis of timestep accuracy, convergence, computational cost, and model validation.
+A Python investigation of projectile motion. It combines an interactive visualiser with a numerical study of how the timestep affects accuracy, why the error behaves the way it does, and how well the simulation matches the exact answer.
 
-## Overview
+## The question
 
-This project started as an interactive 2D projectile-motion visualiser and developed into a computational investigation of numerical accuracy and efficiency.
+> **How does the timestep size affect the accuracy and cost of a numerical projectile simulation, and can I explain the error from the maths?**
 
-The main question investigated was:
+The project started as an interactive 2D visualiser. Once it worked, I wanted to know how accurately the computer represents the physics, so I compared it with the exact analytical answer.
 
-> **How does timestep size affect the accuracy and computational cost of a numerical projectile-motion simulation?**
+## Physics model (ideal projectile)
 
-The numerical results are compared against the analytical solution for ideal projectile motion. The simulation is also tested across multiple launch angles to check whether it reproduces the expected behaviour of the physical model.
+Assumptions: no air resistance, constant gravity, flat ground.
 
-## Features
+With launch speed $v_0$ and angle $\theta$:
 
-* Interactive 2D projectile trajectory visualisation
-* Adjustable initial velocity and launch angle
-* Numerical time-stepping simulation
-* Linear interpolation at ground crossing
-* Analytical calculation of projectile range
-* Convergence analysis across multiple timestep sizes
-* Computational-cost analysis
-* Validation across different launch angles
-* Automatic generation of figures and CSV results
+$$v_x = v_0\cos\theta, \qquad v_{0y} = v_0\sin\theta$$
 
-## Physics Model
+$$x = v_x t, \qquad y = v_{0y}t - \tfrac12 g t^2$$
 
-The simulation assumes ideal projectile motion:
+The projectile lands when $y = 0$, which gives a flight time $T = 2v_{0y}/g$ and a range
 
-* No air resistance
-* Constant gravitational acceleration
-* Flat ground
-* Constant horizontal velocity
-* Uniform gravitational acceleration
+$$R = \frac{v_0^2 \sin 2\theta}{g}$$
 
-For an initial velocity \(v_0\) and launch angle \(\theta\), the theoretical horizontal range is
+For $v_0 = 20$ m/s, $\theta = 45^\circ$, $g = 9.81$ m/s²: $R = 40.7747$ m.
 
-$$
-R = \frac{v_0^2\sin(2\theta)}{g}
-$$
+## Numerical method
 
-where \(g = 9.81\,\text{m/s}^2\).
+The simulation moves forward in small steps of size $\Delta t$. Each step:
 
-This analytical result provides a reference against which the numerical simulation can be evaluated.
+1. Update the vertical velocity: $v_y \leftarrow v_y - g\,\Delta t$
+2. Move using the **new** velocity: $x \leftarrow x + v_x\Delta t$, $y \leftarrow y + v_y\Delta t$
+3. Stop when $y < 0$, then use linear interpolation between the last two points to estimate where the projectile reached $y = 0$.
 
-## Numerical Method
+(Updating velocity first and then position is known as semi-implicit Euler, or Euler–Cromer.)
 
-The simulation advances the projectile in small timesteps.
+## Why the error is proportional to Δt
 
-At each timestep:
+The convergence slope came out close to 1. I wanted to understand why, not just measure it.
 
-1. The vertical velocity is updated using gravitational acceleration.
-2. The horizontal and vertical positions are updated.
-3. The simulation checks whether the projectile has crossed the ground.
-4. When the trajectory crosses \(y=0\), linear interpolation between the final two points estimates the landing position.
+After $k$ steps the velocity is $v_{0y} - g k\,\Delta t$. Adding up the vertical moves over $n$ steps:
 
-The interpolation step reduces the error caused by stopping only after the projectile has already moved below the ground.
+$$y_n = \sum_{k=1}^{n}\left(v_{0y} - g k\,\Delta t\right)\Delta t = n\,v_{0y}\Delta t - g\,\Delta t^2\,\frac{n(n+1)}{2}$$
 
-## Numerical Investigation
+Writing $t = n\,\Delta t$, this becomes
 
-### 1. Convergence Analysis
+$$y(t) = v_{0y}t - \tfrac12 g t^2 - \underbrace{\tfrac12 g\,t\,\Delta t}_{\text{extra term from the method}}$$
 
-The simulation was tested using timestep sizes ranging from `0.1` to `0.0001` seconds.
+The last term always pulls the projectile down. Setting $y = 0$ gives a simulated flight time of
 
-The main experiment used:
+$$T_{\text{sim}} = \frac{2v_{0y}}{g} - \Delta t$$
 
-| Parameter                  |           Value |
-| -------------------------- | --------------: |
-| Initial velocity           |          20 m/s |
-| Launch angle               |             45° |
-| Gravitational acceleration |       9.81 m/s² |
-| Analytical range           | 40.7747196738 m |
+so the simulation **lands exactly one timestep early**, and the range error is
 
-The numerical results were:
+$$\text{error} \approx v_x\,\Delta t = v_0\cos\theta\,\Delta t$$
 
-| Timestep | Numerical Range (m) | Absolute Error (m) |
-| -------: | ------------------: | -----------------: |
-|      0.1 |       39.3532329284 |       1.4214867454 |
-|     0.05 |       40.0648132385 |       0.7099064353 |
-|     0.02 |       40.4916121406 |       0.2831075332 |
-|     0.01 |       40.6331912041 |       0.1415284697 |
-|    0.005 |       40.7039807358 |       0.0707389380 |
-|    0.001 |       40.7605767298 |       0.0141429440 |
-|   0.0005 |       40.7676483080 |       0.0070713658 |
-|   0.0001 |       40.7733054566 |       0.0014142172 |
+This predicts two things before looking at any data: the error is proportional to $\Delta t$ (slope 1 on a log-log plot), and the ratio error/$\Delta t$ should equal $v_x$. For $v_0 = 20$ m/s at $45^\circ$, $v_x = 14.142$ m/s.
 
-![Convergence plot](convergence.png)
+## Checking the prediction
 
-The relationship between timestep and error was examined using a log-log fit.
+| Timestep Δt (s) | Numerical range (m) | Absolute error (m) | Error / Δt |
+|---:|---:|---:|---:|
+| 0.1 | 39.3532329284 | 1.4214867454 | 14.2149 |
+| 0.05 | 40.0648132385 | 0.7099064353 | 14.1981 |
+| 0.02 | 40.4916121406 | 0.2831075332 | 14.1554 |
+| 0.01 | 40.6331912041 | 0.1415284697 | 14.1528 |
+| 0.005 | 40.7039807358 | 0.0707389380 | 14.1478 |
+| 0.001 | 40.7605767298 | 0.0141429440 | 14.1429 |
+| 0.0005 | 40.7676483080 | 0.0070713658 | 14.1427 |
+| 0.0001 | 40.7733054566 | 0.0014142172 | 14.1422 |
 
-The fitted convergence slope was approximately **1.001**, indicating that the numerical error decreases approximately linearly with timestep size.
+The ratio approaches $v_x = 14.142$ as $\Delta t$ shrinks. At large $\Delta t$ it is slightly higher (about 0.5% at $\Delta t = 0.1$), because my derivation ignores the interpolation at landing, which adds a small leftover that shrinks with $\Delta t$.
 
-In other words:
+A log-log fit of error against $\Delta t$ gives a slope of about **1.001**.
 
-$$
-\text{Error} \propto \Delta t^{1.001}
-$$
+![Convergence plot](figures/convergence.png)
 
-This shows quantitatively how refining the timestep improves the accuracy of the simulation.
+## Cost
 
-### 2. Computational Cost
+**Step count.** The number of steps is the flight time divided by $\Delta t$, so $N \propto 1/\Delta t$ by construction. The fitted slope of about −0.999 confirms the bookkeeping but is not an experimental finding.
 
-The number of integration points was recorded for every timestep.
+![Step count plot](figures/computational_cost.png)
 
-As the timestep becomes smaller, the simulation requires more points to represent the same physical trajectory.
+**Measured runtime.** The real trade-off is accuracy against actual compute time, so the script times each run (averaged over a few repeats) and plots error against runtime. Results depend on the machine, and the numbers are saved in `results/results.csv`.
 
-![Computational cost plot](computational_cost.png)
+![Error vs runtime](figures/error_vs_runtime.png)
 
-A log-log fit of timestep against the number of integration points produced a slope of approximately **−0.999**.
+## Validation across launch angles
 
-This is consistent with the expected inverse relationship:
+The error formula predicts that the error depends on the angle through $\cos\theta$. At $\Delta t = 0.001$:
 
-$$
-N \propto \frac{1}{\Delta t}
-$$
+| Angle | Analytical range (m) | Numerical range (m) | Error (m) | Predicted $v_x\Delta t$ (m) |
+|---:|---:|---:|---:|---:|
+| 15° | 20.387360 | 20.368037 | 0.019323 | 0.019319 |
+| 30° | 35.311943 | 35.294621 | 0.017322 | 0.017321 |
+| 45° | 40.774720 | 40.760577 | 0.014143 | 0.014142 |
+| 60° | 35.311943 | 35.301943 | 0.010000 | 0.010000 |
+| 75° | 20.387360 | 20.382183 | 0.005177 | 0.005176 |
 
-where \(N\) is the number of integration points.
+The simulation also reproduces the expected behaviour of the model: 15° and 75° give equal ranges, 30° and 60° give equal ranges, and the maximum is at 45°.
 
-This illustrates an important numerical-computing trade-off:
+![Validation plot](figures/validation.png)
 
-> **Higher numerical accuracy comes at the cost of increased computational work.**
+## Key findings
 
-A timestep that is unnecessarily small can provide very little additional accuracy relative to the computational work required.
+1. The error is proportional to $\Delta t$ (fitted slope ≈ 1.001).
+2. The derivation explains why: the update rule makes the projectile land one timestep early, so the error is $v_x\Delta t$, and the measured error/$\Delta t$ matches $v_x$.
+3. The same formula predicts the error at other launch angles.
 
-### 3. Validation Across Launch Angles
+## Limitations
 
-The numerical method was also tested at several launch angles:
+- **Ideal model only.** No air resistance, flat ground, constant gravity.
+- **Exact answer available.** Comparing against a closed-form result checks the code against a formula. It says little about cases where no exact answer exists.
+- **First order is a property of this update rule, not of simulation in general.** For constant acceleration, moving the projectile with the *average* velocity over each step reproduces the exact parabola. I have not yet tested that.
+- **The error formula ignores interpolation**, so it is slightly off at large timesteps.
 
-**15°, 30°, 45°, 60°, and 75°**
+## What I would do next
 
-The numerical ranges were compared with the analytical solution for each angle.
+- Add **air resistance**, where there is no exact answer, and compare my method against a higher-order method, using a very fine timestep as the reference.
+- Carry the same idea into time-stepping for circuits (see my [circuit solver](https://github.com/Faris-gitgud/Circuit-visualizer)).
 
-![Validation plot](validation.png)
+## How to run
 
-The results reproduce the expected behaviour of ideal projectile motion:
-
-* 15° and 75° produce approximately equal ranges.
-* 30° and 60° produce approximately equal ranges.
-* The maximum range occurs at 45°.
-* The numerical and analytical ranges closely overlap across the tested angles.
-
-This provides an additional check that the numerical implementation behaves consistently beyond a single test case.
-
-## Results at a Glance
-
-| Result                           |         Value |
-| -------------------------------- | ------------: |
-| Analytical range at 45°          | **40.7747 m** |
-| Numerical range at `dt = 0.0001` | **40.7733 m** |
-| Absolute error at `dt = 0.0001`  | **0.00141 m** |
-| Convergence slope                |   **≈ 1.001** |
-| Computational-cost slope         |  **≈ −0.999** |
-| Maximum theoretical range        |       **45°** |
-
-These results show that reducing the timestep improves accuracy in a predictable way, while also increasing the computational work required.
-
-## Key Findings
-
-The investigation produced three main observations:
-
-1. **Reducing the timestep reduces numerical error.**
-2. **Reducing the timestep increases computational work.**
-3. **The numerical model reproduces the expected dependence of projectile range on launch angle.**
-
-The project therefore demonstrates a basic but important idea in computational science: **numerical accuracy and computational efficiency must be considered together.**
-
-## Project Structure
-
-```text
-Projectile-motion-visualiser/
-│
-├── projectile.py
-│   └── Interactive projectile visualiser
-│
-├── projectile_analysis.py
-│   └── Numerical experiments and analysis
-│
-├── convergence.png
-│
+```bash
+pip install numpy matplotlib
+python projectile.py            # interactive visualiser
+python projectile_analysis.py   # experiments, figures and results
 ```
+
+The analysis script writes plots to `figures/` and a results table to `results/results.csv`.
+
+## Project structure
+
+```
+Projectile-motion-visualiser/
+├── projectile.py             # interactive visualiser
+├── projectile_analysis.py    # numerical experiments and analysis
+├── figures/                  # convergence, step count, runtime, validation plots
+├── results/
+│   └── results.csv           # results table
+└── README.md
+```
+
+## Acknowledgements and AI assistance
+
+I wrote the original simulation and analysis code. I used an AI assistant (Claude) to review the project, to suggest the error derivation and the runtime measurement, and to help draft this README. I ran the code and checked the results myself.
