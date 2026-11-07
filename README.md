@@ -75,17 +75,17 @@ The ratio approaches $v_x = 14.142$ as $\Delta t$ shrinks. At large $\Delta t$ i
 
 A log-log fit of error against $\Delta t$ gives a slope of about **1.001**.
 
-![Convergence plot](figures/convergence.png)
+Check 'Convergence.png'
 
 ## Cost
 
 **Step count.** The number of steps is the flight time divided by $\Delta t$, so $N \propto 1/\Delta t$ by construction. The fitted slope of about −0.999 confirms the bookkeeping but is not an experimental finding.
 
-![Step count plot](figures/computational_cost.png)
+Check 'stepcountv:stimestep.png'
 
 **Measured runtime.** The real trade-off is accuracy against actual compute time, so the script times each run (averaged over a few repeats) and plots error against runtime. Results depend on the machine, and the numbers are saved in `results/results.csv`.
 
-![Error vs runtime](figures/error_vs_runtime.png)
+Check 'accuracyv:sruntime.png'
 
 ## Validation across launch angles
 
@@ -101,7 +101,7 @@ The error formula predicts that the error depends on the angle through $\cos\the
 
 The simulation also reproduces the expected behaviour of the model: 15° and 75° give equal ranges, 30° and 60° give equal ranges, and the maximum is at 45°.
 
-![Validation plot](figures/validation.png)
+Check 'validation_angles.png'
 
 ## Key findings
 
