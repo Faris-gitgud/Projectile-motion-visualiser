@@ -2,6 +2,8 @@
 
 A Python investigation of projectile motion. It combines an interactive visualiser with a numerical study of how the timestep affects accuracy, why the error behaves the way it does, and how well the simulation matches the exact answer.
 
+**Video walkthrough:** https://youtu.be/AExbYe-r0DM
+
 ## The question
 
 > **How does the timestep size affect the accuracy and cost of a numerical projectile simulation, and can I explain the error from the maths?**
