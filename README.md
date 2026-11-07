@@ -30,7 +30,7 @@ For $v_0 = 20$ m/s, $\theta = 45^\circ$, $g = 9.81$ m/s²: $R = 40.7747$ m.
 
 The simulation moves forward in small steps of size $\Delta t$. Each step:
 
-1. Update the vertical velocity: $v_y \leftarrow v_y - g\,\Delta t$
+1. Update the vertical velocity: $v_y \leftarrow v_y - g \Delta t$
 2. Move using the **new** velocity: $x \leftarrow x + v_x\Delta t$, $y \leftarrow y + v_y\Delta t$
 3. Stop when $y < 0$, then use linear interpolation between the last two points to estimate where the projectile reached $y = 0$.
 
@@ -40,13 +40,13 @@ The simulation moves forward in small steps of size $\Delta t$. Each step:
 
 The convergence slope came out close to 1. I wanted to understand why, not just measure it.
 
-After $k$ steps the velocity is $v_{0y} - g k\,\Delta t$. Adding up the vertical moves over $n$ steps:
+After $k$ steps the velocity is $v_{0y} - g k \Delta t$. Adding up the vertical moves over $n$ steps:
 
-$$y_n = \sum_{k=1}^{n}\left(v_{0y} - g k\,\Delta t\right)\Delta t = n\,v_{0y}\Delta t - g\,\Delta t^2\,\frac{n(n+1)}{2}$$
+$$y_n = \sum_{k=1}^{n}\left(v_{0y} - g k \Delta t\right)\Delta t = n v_{0y}\Delta t - g \Delta t^2 \frac{n(n+1)}{2}$$
 
-Writing $t = n\,\Delta t$, this becomes
+Writing $t = n \Delta t$, this becomes
 
-$$y(t) = v_{0y}t - \tfrac12 g t^2 - \underbrace{\tfrac12 g\,t\,\Delta t}_{\text{extra term from the method}}$$
+$$y(t) = v_{0y}t - \tfrac12 g t^2 - \underbrace{\tfrac12 g t \Delta t}_{\text{extra term from the method}}$$
 
 The last term always pulls the projectile down. Setting $y = 0$ gives a simulated flight time of
 
@@ -54,7 +54,7 @@ $$T_{\text{sim}} = \frac{2v_{0y}}{g} - \Delta t$$
 
 so the simulation **lands exactly one timestep early**, and the range error is
 
-$$\text{error} \approx v_x\,\Delta t = v_0\cos\theta\,\Delta t$$
+$$\text{error} \approx v_x \Delta t = v_0\cos\theta \Delta t$$
 
 This predicts two things before looking at any data: the error is proportional to $\Delta t$ (slope 1 on a log-log plot), and the ratio error/$\Delta t$ should equal $v_x$. For $v_0 = 20$ m/s at $45^\circ$, $v_x = 14.142$ m/s.
 
